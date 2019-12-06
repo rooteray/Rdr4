@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Rdr4</string>
+    <string name="button">Press</string>
+
+    <string name="title_activity_fullscreen">fullscreen</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+</resources>
