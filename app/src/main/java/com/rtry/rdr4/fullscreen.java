@@ -3,6 +3,7 @@ package com.rtry.rdr4;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.MotionEventCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -98,7 +99,6 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         super.onCreate(savedInstanceState);
         gst = new GestureDetectorCompat(this, this);
         setContentView(R.layout.activity_fullscreen);
-        //Intent intent = getIntent();
         Intent chooseFile = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
         chooseFile.setType("*/*");
