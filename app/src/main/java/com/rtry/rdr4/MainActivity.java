@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, fullscreen.class);
         startActivity(intent);
     }
-    ArrayList<String> test;
+    static ArrayList<String> test;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

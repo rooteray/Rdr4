@@ -47,6 +47,43 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     public MangaEntry men = new MangaEntry();
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    Context cont;
+    public class OpenFile {
+        Uri uri;
+
+        public OpenFile(Uri uri){
+            this.uri = uri;
+        }
+        public Context getContextOpen(){
+            return getApplicationContext();
+        }
+        public void openFile(Uri filePath){
+            try {
+                zip = new ZipInputStream(cont.getContentResolver().openInputStream(filePath));
+                ze = zip.getNextEntry();
+                Bitmap bitmap = BitmapFactory.decodeStream(zip);
+                MangaEntry man = new MangaEntry(content_describer.toString(), cont);
+                man.addEntry(man.uri); //zmienic na dodawanie obiektu context+string
+                man.saveEntries(man); //zmienic na dodawanie obiektu context+string
+                entries = (ArrayList<String>)man.loadEntries(); //zmienic na dodawanie obiektu context+string
+                for(int b=0; b<entries.size(); b++)
+                    Log.d("obj", entries.get(b));
+
+                page = 0;
+                buf_page = 0;
+                for(int j=0; j<255; j++)
+                    btm[j] = null;
+                btm[page] = bitmap;
+                i.setImageBitmap(btm[page]);
+
+
+            } catch (Exception e){
+                e.getStackTrace();
+            }
+
+        }
+
+    }
 
         public void next_page(View view){
         if(page == buf_page)
@@ -78,20 +115,23 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
 
     public static class MangaEntry implements Serializable {
             String uri;
+            Context cont;
             //String title;
             public MangaEntry(){
 
             }
-            public MangaEntry(String uri) {
+            public MangaEntry(String uri, Context cont) {
                 this.uri = uri;
+                this.cont = cont;
             }
             public void addEntry(String mangaEntry){
                 entries.add(mangaEntry);
             }
-            public void saveEntries(Context context, ArrayList<String> entries){
+            public void saveEntries(MangaEntry entries){
                 try
                 {
-                    FileOutputStream fos = context.openFileOutput("entries" ,Context.MODE_PRIVATE);
+                    //zmienic na dodawanie obiektu context+string
+                    FileOutputStream fos = this.cont.openFileOutput("entries" ,Context.MODE_PRIVATE);
                     ObjectOutputStream oos = new ObjectOutputStream(fos);
                     oos.writeObject(entries);
                     oos.close();
@@ -103,9 +143,10 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                 }
 
             }
-            public Object loadEntries(Context context){
+            public Object loadEntries(){
+                //zmienic na wczytywanie obiektu context+string
                 try {
-                        FileInputStream fis = context.openFileInput("entries");
+                        FileInputStream fis = this.cont.openFileInput("entries");
                         ObjectInputStream ois = new ObjectInputStream(fis);
                         Object obj = ois.readObject();
                         return obj;
@@ -117,6 +158,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             }
 
     }
+    OpenFile open;
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -125,28 +167,10 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             String src = content_describer.getPath();
             source = new File(src);
             i = (ImageView) findViewById(R.id.imageView);
-            try {
-                zip = new ZipInputStream(getContentResolver().openInputStream(content_describer));
-                ze = zip.getNextEntry();
-                Bitmap bitmap = BitmapFactory.decodeStream(zip);
-                MangaEntry man = new MangaEntry(content_describer.toString());
-                man.addEntry(man.uri);
-                man.saveEntries(this, entries);
-                entries = (ArrayList<String>)man.loadEntries(this);
-                for(int b=0; b<entries.size(); b++)
-                    Log.d("obj", entries.get(b));
-
-                page = 0;
-                buf_page = 0;
-                for(int j=0; j<255; j++)
-                    btm[j] = null;
-                btm[page] = bitmap;
-                i.setImageBitmap(btm[page]);
-
-
-            } catch (Exception e){
-                e.getStackTrace();
-            }
+            open = new OpenFile(content_describer);
+            cont = open.getContextOpen();
+            open.openFile(open.uri);
+            open.openFile(Uri.parse(MainActivity.test.get(0)));
         }
     }
 
@@ -226,18 +250,19 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                 try {
                     ze = zip.getNextEntry();
                     Bitmap bitmap = BitmapFactory.decodeStream(zip);
-                    btm[++page] = bitmap;
+                    if(bitmap != null)
+                        btm[++page] = bitmap;
                     i.setImageBitmap(btm[page]);
                     buf_page++;
                 } catch(Exception e) {
-                    page--;
+                    //page--;
                     e.getStackTrace();
                 }
             else
                 try{
                     i.setImageBitmap(btm[++page]);
                 } catch (Exception ex){
-                    page--;
+                    //page--;
                     ex.getStackTrace();
                 }
 
