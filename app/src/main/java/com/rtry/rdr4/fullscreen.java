@@ -2,31 +2,38 @@ package com.rtry.rdr4;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
-import androidx.core.view.MotionEventCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import static android.view.View.SYSTEM_UI_FLAG_IMMERSIVE;
 
-public class fullscreen extends AppCompatActivity implements GestureDetector.OnGestureListener {
+public class fullscreen extends AppCompatActivity implements GestureDetector.OnGestureListener, Serializable {
     Uri content_describer;
     File source;
     ZipEntry ze;
@@ -36,6 +43,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     Bitmap[] btm = new Bitmap[255];
     ImageView i;
     GestureDetectorCompat gst;
+    public static ArrayList<String> entries = new ArrayList<>();
+    public MangaEntry men = new MangaEntry();
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
 
@@ -67,6 +76,47 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         }
     }
 
+    public static class MangaEntry implements Serializable {
+            String uri;
+            //String title;
+            public MangaEntry(){
+
+            }
+            public MangaEntry(String uri) {
+                this.uri = uri;
+            }
+            public void addEntry(String mangaEntry){
+                entries.add(mangaEntry);
+            }
+            public void saveEntries(Context context, ArrayList<String> entries){
+                try
+                {
+                    FileOutputStream fos = context.openFileOutput("entries" ,Context.MODE_PRIVATE);
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeObject(entries);
+                    oos.close();
+                    fos.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+
+            }
+            public Object loadEntries(Context context){
+                try {
+                        FileInputStream fis = context.openFileInput("entries");
+                        ObjectInputStream ois = new ObjectInputStream(fis);
+                        Object obj = ois.readObject();
+                        return obj;
+                    }
+                 catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+    }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -76,10 +126,16 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             source = new File(src);
             i = (ImageView) findViewById(R.id.imageView);
             try {
-
                 zip = new ZipInputStream(getContentResolver().openInputStream(content_describer));
                 ze = zip.getNextEntry();
                 Bitmap bitmap = BitmapFactory.decodeStream(zip);
+                MangaEntry man = new MangaEntry(content_describer.toString());
+                man.addEntry(man.uri);
+                man.saveEntries(this, entries);
+                entries = (ArrayList<String>)man.loadEntries(this);
+                for(int b=0; b<entries.size(); b++)
+                    Log.d("obj", entries.get(b));
+
                 page = 0;
                 buf_page = 0;
                 for(int j=0; j<255; j++)
@@ -93,6 +149,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             }
         }
     }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,12 +230,14 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     i.setImageBitmap(btm[page]);
                     buf_page++;
                 } catch(Exception e) {
+                    page--;
                     e.getStackTrace();
                 }
             else
                 try{
                     i.setImageBitmap(btm[++page]);
                 } catch (Exception ex){
+                    page--;
                     ex.getStackTrace();
                 }
 
