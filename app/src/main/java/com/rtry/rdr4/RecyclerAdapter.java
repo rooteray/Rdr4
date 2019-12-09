@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +24,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -49,13 +52,24 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
 
         return imageViewHolder;
     }
-
+    String path;
+    Bitmap btm;
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         //int image_id = images[position];
 
+        path = uriList.get(position).getLastPathSegment();
+        try {
+            ZipFile zip = new ZipFile(path.replace("raw:", ""));
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            ZipEntry entry = entries.nextElement();
+            InputStream zi = zip.getInputStream(entry);
+            btm = BitmapFactory.decodeStream(zi);
+        } catch(Exception e){
+            e.getStackTrace();
+        }
 
-        holder.album.setImageResource(R.drawable.nico);
+        holder.album.setImageBitmap(btm);
             //holder.album_title.setText("Image: "+position);
         Uri uri = this.uriList.get(position);
         Log.d("uri:  ", uri.toString());

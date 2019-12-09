@@ -49,7 +49,10 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         fullscreen.MangaEntry ent = new fullscreen.MangaEntry();
         ArrayList<String> entry = new ArrayList<>();
+        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji.zip");
+        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji2.zip");
         entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji3.zip");
+        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji4.zip");
         ent.saveEntries(this, entry);
         //ent.uri = "content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji3.zip";
         //entry.add(ent.uri);
