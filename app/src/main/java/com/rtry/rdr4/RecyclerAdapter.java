@@ -32,12 +32,11 @@ import java.util.zip.ZipInputStream;
 
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageViewHolder>{
-    private ArrayList<Uri> uriList;
+    public static ArrayList<Uri> uriList;
     private int[] images;
-    public RecyclerAdapter(int[] images){
-        this.images = images;
-    }
-    public RecyclerAdapter(ArrayList<String> entries){
+    private Context mContext;
+    public RecyclerAdapter(Context mContext, ArrayList<String> entries){
+        this.mContext = mContext;
         this.uriList = new ArrayList<Uri>();
         for(int i=0; i<entries.size(); i++)
             this.uriList.add(Uri.parse(entries.get(i)));
@@ -56,7 +55,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
     Bitmap btm;
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-        //int image_id = images[position];
 
         path = uriList.get(position).getLastPathSegment();
         try {
@@ -70,7 +68,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
         }
 
         holder.album.setImageBitmap(btm);
-            //holder.album_title.setText("Image: "+position);
+
+        holder.album.setOnClickListener((view) -> {
+            Intent intent = new Intent(mContext, fullscreen.class);
+            intent.putExtra("filePath", path );
+            intent.putExtra("which", position);
+            mContext.startActivity(intent);
+
+        });
         Uri uri = this.uriList.get(position);
         Log.d("uri:  ", uri.toString());
         holder.album_title.setText(uri.getPath());
@@ -81,12 +86,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
 
     @Override
     public int getItemCount() {
-        //return images.length;
         try{
             return uriList.size();
         } catch (Exception e){
             return 0;
-            //return images.length;
         }
     }
     public static class ImageViewHolder extends RecyclerView.ViewHolder{

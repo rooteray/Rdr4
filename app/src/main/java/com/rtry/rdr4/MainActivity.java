@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                     R.drawable.nico, R.drawable.rin};
     private RecyclerAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
-
+    public static Context mContext;
     public void onClick(View view){
         Intent intent = new Intent(this, fullscreen.class);
         startActivity(intent);
@@ -44,26 +44,27 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = getApplicationContext();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        fullscreen.MangaEntry ent = new fullscreen.MangaEntry();
+        fullscreen.MangaEntry ent = new fullscreen.MangaEntry("abc", mContext);
         ArrayList<String> entry = new ArrayList<>();
         entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji.zip");
         entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji2.zip");
         entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji3.zip");
         entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji4.zip");
-        ent.saveEntries(this, entry);
+        ent.saveEntries(entry);
         //ent.uri = "content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji3.zip";
         //entry.add(ent.uri);
         //ent.saveEntries(this, entry);
-        test = (ArrayList<String>) ent.loadEntries(this);
+        test = (ArrayList<String>) ent.loadEntries();
 
         recycler = (RecyclerView) findViewById(R.id.recycler);
         layoutManager = new GridLayoutManager(this, 2);
         recycler.setHasFixedSize(true);
         recycler.setLayoutManager(layoutManager);
-        adapter = new RecyclerAdapter(test);
+        adapter = new RecyclerAdapter(this, test );
         recycler.setAdapter(adapter);
 
     }
