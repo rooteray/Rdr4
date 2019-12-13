@@ -2,34 +2,28 @@ package com.rtry.rdr4;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.Activity;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 
 public class MainActivity extends AppCompatActivity {
-
+    fullscreen.MangaEntry ent;
+    String[] permissionArray;
     private RecyclerView recycler;
     int[] images = {R.drawable.eli, R.drawable.honoka, R.drawable.maki,
                     R.drawable.nico, R.drawable.rin};
@@ -40,31 +34,59 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, fullscreen.class);
         startActivity(intent);
     }
-    static ArrayList<String> test;
+    static ArrayList<String> entries;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        permissionArray = new String[2];
+        permissionArray[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+        permissionArray[1] = Manifest.permission.READ_EXTERNAL_STORAGE;
+        if(ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED )
+        {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    permissionArray,
+                    3);
+        }
+
         mContext = getApplicationContext();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        fullscreen.MangaEntry ent = new fullscreen.MangaEntry("abc", mContext);
+        ent = new fullscreen.MangaEntry("abc", mContext);
         ArrayList<String> entry = new ArrayList<>();
-        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji.zip");
-        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji2.zip");
-        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji3.zip");
-        entry.add("content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji4.zip");
-        ent.saveEntries(entry);
-        //ent.uri = "content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fiji3.zip";
-        //entry.add(ent.uri);
-        //ent.saveEntries(this, entry);
-        test = (ArrayList<String>) ent.loadEntries();
+
+        try{
+            InputStream is = openFileInput("entries");
+            is.close();
+        } catch(IOException e){
+            ent.saveEntries(entry);
+        }
+
+        try {
+            entries = (ArrayList<String>) ent.loadEntries();
+        } catch (Exception e){
+            entries = new ArrayList<>();
+            ent.saveEntries(entries);
+        }
 
         recycler = (RecyclerView) findViewById(R.id.recycler);
         layoutManager = new GridLayoutManager(this, 2);
         recycler.setHasFixedSize(true);
         recycler.setLayoutManager(layoutManager);
-        adapter = new RecyclerAdapter(this, test );
+        adapter = new RecyclerAdapter(this, entries );
+        recycler.setAdapter(adapter);
+
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        entries = (ArrayList<String>) ent.loadEntries();
+        adapter = new RecyclerAdapter(this, entries );
         recycler.setAdapter(adapter);
 
     }
@@ -80,6 +102,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            return true;
+        }
+        if (id == R.id.action_reset) {
+            entries = new ArrayList<>();
+            ent.saveEntries(entries);
+            adapter = new RecyclerAdapter(this, entries );
+            recycler.setAdapter(adapter);
             return true;
         }
         return super.onOptionsItemSelected(item);

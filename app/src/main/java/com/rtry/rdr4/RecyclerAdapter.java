@@ -1,7 +1,5 @@
 package com.rtry.rdr4;
 
-import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,18 +15,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageViewHolder>{
@@ -38,9 +29,16 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
     public RecyclerAdapter(Context mContext, ArrayList<String> entries){
         this.mContext = mContext;
         this.uriList = new ArrayList<Uri>();
-        for(int i=0; i<entries.size(); i++)
+        int n=0;
+        try{
+            n = entries.size();
+        } catch(Exception e){
+            e.getStackTrace();
+        }
+
+        for(int i=0; i<n; i++)
             this.uriList.add(Uri.parse(entries.get(i)));
-        Log.d("urilist: ", uriList.get(0).toString());
+        //Log.d("urilist: ", uriList.get(0).toString());
     }
 
     @NonNull
@@ -53,16 +51,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
     }
     String path;
     Bitmap btm;
+    ZipFile zip;
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
 
-        path = uriList.get(position).getLastPathSegment();
         try {
-            ZipFile zip = new ZipFile(path.replace("raw:", ""));
+            path = uriList.get(position).getLastPathSegment();
+            zip = new ZipFile(path.replace("raw:", ""));
             Enumeration<? extends ZipEntry> entries = zip.entries();
             ZipEntry entry = entries.nextElement();
             InputStream zi = zip.getInputStream(entry);
             btm = BitmapFactory.decodeStream(zi);
+            zi.close();
         } catch(Exception e){
             e.getStackTrace();
         }
@@ -76,11 +76,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
             mContext.startActivity(intent);
 
         });
-        Uri uri = this.uriList.get(position);
-        Log.d("uri:  ", uri.toString());
-        holder.album_title.setText(uri.getPath());
-        Log.d("title:    ", holder.album_title.toString());
+        holder.album_title.setText(getZipName(zip));
 
+    }
+    private String getZipName(ZipFile zipfile){
+        String name = zipfile.getName();
+        return name.substring(name.lastIndexOf('/') + 1);
     }
 
 
