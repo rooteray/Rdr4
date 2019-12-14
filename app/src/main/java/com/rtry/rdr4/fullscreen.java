@@ -72,7 +72,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     entries = new ArrayList<>();
                     man.saveEntries(entries);
                 }
-                entries.add(man.uri);
+                if(!(entries.contains(man.uri)))
+                    entries.add(man.uri);
                 man.saveEntries(entries);
                 entries = (ArrayList<String>) man.loadEntries();
                 for (int b = 0; b < entries.size(); b++)
@@ -293,41 +294,23 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
             try{
-                if(page > 0)
-                    i.setImageBitmap(btm[--page]);
-            } catch (Exception ex){
-                try{
+                if(MainActivity.getMangaMode())
                     prev_page();
-                } catch (Exception e){
-                    e.getStackTrace();
-                }
-                ex.getStackTrace();
+                else
+                    next_page();
+            } catch(Exception e){
+                e.getStackTrace();
             }
         else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
-            if(page == buf_page)
-                try {
-                    ze = zip.getNextEntry();
-                    Bitmap bitmap = BitmapFactory.decodeStream(zip);
-                    if(bitmap != null)
-                        btm[++page] = bitmap;
-                    i.setImageBitmap(btm[page]);
-                    buf_page++;
-                } catch(Exception e) {
-                    try{
-                        next_page();
-                    } catch(Exception ex){
-                        ex.getStackTrace();
-                    }
-                    //page--;
-                    e.getStackTrace();
-                }
-            else
-                try{
-                    i.setImageBitmap(btm[++page]);
-                } catch (Exception ex){
-                    //page--;
-                    ex.getStackTrace();
-                }
+            try {
+                if(MainActivity.getMangaMode())
+                    next_page();
+                else
+                    prev_page();
+            } catch(Exception e){
+                e.getStackTrace();
+            }
+
 
         return true;
     }

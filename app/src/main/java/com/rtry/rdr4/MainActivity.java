@@ -22,11 +22,10 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity {
+    private static boolean manga_mode = true;
     fullscreen.MangaEntry ent;
     String[] permissionArray;
     private RecyclerView recycler;
-    int[] images = {R.drawable.eli, R.drawable.honoka, R.drawable.maki,
-                    R.drawable.nico, R.drawable.rin};
     private RecyclerAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
     public static Context mContext;
@@ -102,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Intent settings = new Intent(this, Settings.class);
+            startActivity(settings);
             return true;
         }
         if (id == R.id.action_reset) {
@@ -113,4 +114,11 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+    public static boolean getMangaMode(){
+        return manga_mode;
+    }
+    public static void setManga_mode(boolean val){
+        manga_mode = val;
+    }
+
 }
