@@ -6,7 +6,6 @@ import androidx.core.view.GestureDetectorCompat;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,7 +16,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,35 +27,23 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 
 public class fullscreen extends AppCompatActivity implements GestureDetector.OnGestureListener, Serializable {
     Uri content_describer;
-    File source;
-    ZipEntry ze;
-    ZipInputStream zip;
     int page = 0;
     int buf_page = 0;
-    Bitmap[] btm;
     ImageView i;
     GestureDetectorCompat gst;
     public static ArrayList<String> entries = new ArrayList<>();
-    public MangaEntry men = new MangaEntry();
     private static final int SWIPE_MIN_DISTANCE = 120;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
-    Context cont;
     ZipFile zipfl;
     Enumeration<? extends ZipEntry> entriesfl;
-    ZipEntry[] allEntries;
+    ArrayList<ZipEntry> entriesList;
     ZipEntry ent;
     String convertedPath;
     public class OpenFile {
-        Uri uri;
-
-        public OpenFile(Uri uri){
-            this.uri = uri;
-        }
         public OpenFile(){}
         public Context getContextOpen(){
             return getApplicationContext();
@@ -76,26 +62,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     entries.add(man.uri);
                 man.saveEntries(entries);
                 entries = (ArrayList<String>) man.loadEntries();
-                for (int b = 0; b < entries.size(); b++)
-                    Log.d("obj", entries.get(b));
-                convertedPath = filePath.getLastPathSegment().replace("raw:", "");
-                try {
-                    btm = new Bitmap[255];
-                    zipfl = new ZipFile(convertedPath);
-                    entriesfl = zipfl.entries();
-                    ent = entriesfl.nextElement();
-                    page = 0;
-                    buf_page = 0;
-                    for (int j = 0; j < 255; j++)
-                        btm[j] = null;
-                    InputStream zi = zipfl.getInputStream(ent);
-                    btm[page] = BitmapFactory.decodeStream(zi);
-                    zi.close();
-                    i.setImageBitmap(btm[page]);
-                } catch (Exception e) {
-                    e.getStackTrace();
-                }
 
+                openFile(filePath.getLastPathSegment());
             } catch(Exception e){
                 e.getStackTrace();
             }
@@ -103,19 +71,17 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         public void openFile(String path){
             convertedPath = path.replace("raw:", "");
             try {
-
-                btm  = new Bitmap[255];
+                entriesList = new ArrayList<>();
                 zipfl = new ZipFile(convertedPath);
                 entriesfl = zipfl.entries();
                 ent = entriesfl.nextElement();
+                entriesList.add(ent);
                 page = 0;
                 buf_page = 0;
-                for(int j=0; j<255; j++)
-                    btm[j] = null;
-                InputStream zi = zipfl.getInputStream(ent);
-                btm[page] = BitmapFactory.decodeStream(zi);
+                InputStream zi = zipfl.getInputStream(entriesList.get(page));
+                i.setImageBitmap(BitmapFactory.decodeStream(zi));
+
                 zi.close();
-                i.setImageBitmap(btm[page]);
             }catch (Exception e){
                 e.getStackTrace();
             }
@@ -125,33 +91,26 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     }
 
         public void next_page(){
-        if(page == buf_page)
-
             try {
                 page++;
                 ent = entriesfl.nextElement();
-                InputStream in = zipfl.getInputStream(ent);
-                Bitmap bitmap = BitmapFactory.decodeStream(in);
-                btm[page] = bitmap;
+                entriesList.add(ent);
+                InputStream in = zipfl.getInputStream(entriesList.get(page));
+                i.setImageBitmap(BitmapFactory.decodeStream(in));
                 in.close();
-                i.setImageBitmap(bitmap);
                 buf_page++;
             } catch(Exception e) {
                 page--;
                 e.getStackTrace();
-            }
-        else
-            try{
-                i.setImageBitmap(btm[++page]);
-            } catch (Exception ex){
-                ex.getStackTrace();
             }
     }
 
     public void prev_page(){
         try{
             if(page > 0) {
-                i.setImageBitmap(btm[--page]);
+                InputStream in = zipfl.getInputStream(entriesList.get(--page));
+                i.setImageBitmap(BitmapFactory.decodeStream(in));
+                in.close();
             }
         } catch (Exception ex){
             page++;
@@ -162,16 +121,9 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     public static class MangaEntry implements Serializable {
             String uri;
             Context cont;
-            //String title;
-            public MangaEntry(){
-
-            }
             public MangaEntry(String uri, Context cont) {
                 this.uri = uri;
                 this.cont = cont;
-            }
-            public void addEntry(String mangaEntry){
-                entries.add(mangaEntry);
             }
             public void saveEntries(ArrayList<String> entries){
                 try
@@ -211,8 +163,6 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
 
          if (requestCode == 1 && resultCode == Activity.RESULT_OK){
             content_describer = data.getData();
-            //String src = content_describer.getPath();
-            //source = new File(src);
             i = (ImageView) findViewById(R.id.imageView);
             open = new OpenFile();
             open.openFile(content_describer);
@@ -262,6 +212,17 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         };
 
         forceImmersive.postDelayed(runnable, 1000);
+
+    }
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        try {
+            zipfl.close();
+            System.gc();
+        } catch (Exception e){
+            e.getStackTrace();
+        }
 
     }
 
@@ -320,5 +281,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             gst.onTouchEvent(event);
             return super.onTouchEvent(event);
     }
+
+
 }
 

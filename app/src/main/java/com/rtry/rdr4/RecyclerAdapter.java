@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +23,6 @@ import java.util.zip.ZipFile;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageViewHolder>{
     public static ArrayList<Uri> uriList;
-    private int[] images;
     private Context mContext;
     public RecyclerAdapter(Context mContext, ArrayList<String> entries){
         this.mContext = mContext;
@@ -38,7 +36,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
 
         for(int i=0; i<n; i++)
             this.uriList.add(Uri.parse(entries.get(i)));
-        //Log.d("urilist: ", uriList.get(0).toString());
     }
 
     @NonNull
