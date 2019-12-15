@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -49,6 +50,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
     String path;
     Bitmap btm;
     ZipFile zip;
+
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
 
@@ -73,6 +75,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
             mContext.startActivity(intent);
 
         });
+
+
         holder.album_title.setText(getZipName(zip));
 
     }

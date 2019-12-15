@@ -74,8 +74,10 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                 entriesList = new ArrayList<>();
                 zipfl = new ZipFile(convertedPath);
                 entriesfl = zipfl.entries();
-                ent = entriesfl.nextElement();
-                entriesList.add(ent);
+                while(entriesfl.hasMoreElements()) {
+                    ent = entriesfl.nextElement();
+                    entriesList.add(ent);
+                }
                 page = 0;
                 buf_page = 0;
                 InputStream zi = zipfl.getInputStream(entriesList.get(page));
@@ -91,10 +93,11 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     }
 
         public void next_page(){
+        if(page+1 < entriesList.size())
             try {
                 page++;
-                ent = entriesfl.nextElement();
-                entriesList.add(ent);
+                //ent = entriesfl.nextElement();
+                //entriesList.add(ent);
                 InputStream in = zipfl.getInputStream(entriesList.get(page));
                 i.setImageBitmap(BitmapFactory.decodeStream(in));
                 in.close();
