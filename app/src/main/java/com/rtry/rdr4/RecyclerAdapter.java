@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -62,6 +62,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
             InputStream zi = zip.getInputStream(entry);
             btm = BitmapFactory.decodeStream(zi);
             zi.close();
+            zip.close();
         } catch(Exception e){
             e.getStackTrace();
         }
@@ -94,16 +95,34 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
             return 0;
         }
     }
-    public static class ImageViewHolder extends RecyclerView.ViewHolder{
+    public static class ImageViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
 
         ImageView album;
         TextView album_title;
+
 
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             album = itemView.findViewById(R.id.album);
             album_title = itemView.findViewById(R.id.album_tile);
+            album.setOnCreateContextMenuListener(this);
 
         }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            menu.add(this.getAdapterPosition(), 121, 0, "Delete");
+        }
+    }
+    public void removeItem(int position){
+        uriList.remove(position);
+        notifyDataSetChanged();
+    }
+    public ArrayList<Uri> getUriList(){
+        return uriList;
+    }
+    public void clearItems(){
+        uriList.clear();
+        notifyDataSetChanged();
     }
 }
