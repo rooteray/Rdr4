@@ -70,6 +70,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
                     btm = BitmapFactory.decodeStream(zi);
                     zi.close();
                     holder.album_title.setText(getZipName(zip));
+                    holder.album.setImageBitmap(btm);
                     zip.close();
                 } catch (Exception e) {
                     e.getStackTrace();
@@ -82,6 +83,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
                     btm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.nico);
                     pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                     holder.album_title.setText(fl.getName());
+                    holder.album.setImageBitmap(btm);
+                    pdfPage.close();
                     renderer.close();
                 } catch (Exception e){
                     e.getStackTrace();
@@ -89,8 +92,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
         } catch(Exception e){
             e.getStackTrace();
         }
-
-        holder.album.setImageBitmap(btm);
 
         holder.album.setOnClickListener((view) -> {
             Intent intent = new Intent(mContext, fullscreen.class);

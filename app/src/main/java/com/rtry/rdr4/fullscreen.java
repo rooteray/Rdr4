@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.Rect;
 import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -51,8 +49,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     String convertedPath;
     PdfRenderer renderer;
     File fl;
-    Bitmap btm;
     PdfRenderer.Page pdfPage;
+    Bitmap btm;
     public class OpenFile {
         public OpenFile(){}
         public Context getContextOpen(){
@@ -87,11 +85,9 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     renderer = new PdfRenderer(ParcelFileDescriptor.open(fl,  ParcelFileDescriptor.MODE_READ_ONLY));
                     page = 0;
                     pdfPage = renderer.openPage(page);
-                    btm = BitmapFactory.decodeResource(getResources(), R.drawable.nico);
                     pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                     i.setImageBitmap(btm);
                     pdfPage.close();
-                    renderer.close();
                 } catch (Exception e) {
                     e.getStackTrace();
                 }
@@ -135,22 +131,13 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                 }
         }
         else if(convertedPath.contains(".pdf")) {
-                try {
-                    fl = new File(convertedPath);
-                    renderer = new PdfRenderer(ParcelFileDescriptor.open(fl, ParcelFileDescriptor.MODE_READ_ONLY));
-                } catch(Exception e){
-                    Log.d("file", "fail");
-                    e.getStackTrace();
-                }
                 if (page + 1 < renderer.getPageCount())
                     try {
                         page++;
-                        btm = BitmapFactory.decodeResource(getResources(), R.drawable.nico);
                         pdfPage = renderer.openPage(page);
                         pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                         i.setImageBitmap(btm);
                         pdfPage.close();
-                        renderer.close();
                     } catch (Exception e) {
                         page--;
                         e.getStackTrace();
@@ -173,13 +160,10 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         else if(convertedPath.contains(".pdf"))
             try{
                 if(page > 0){
-                    fl = new File(convertedPath);
-                    renderer = new PdfRenderer(ParcelFileDescriptor.open(fl,  ParcelFileDescriptor.MODE_READ_ONLY));
                     pdfPage = renderer.openPage(--page);
                     pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                     i.setImageBitmap(btm);
                     pdfPage.close();
-                    renderer.close();
                 }
             } catch (Exception e){
                 e.getStackTrace();
@@ -242,6 +226,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        btm = BitmapFactory.decodeResource(getResources(), R.drawable.nico);
+
         gst = new GestureDetectorCompat(this, this);
         setContentView(R.layout.activity_fullscreen);
         if(getIntent().hasExtra("filePath")){
@@ -291,6 +277,14 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         } catch (Exception e){
             e.getStackTrace();
         }
+        try {
+            btm = null;
+            renderer.close();
+            System.gc();
+        } catch (Exception e){
+            e.getStackTrace();
+        }
+
 
     }
 
