@@ -6,16 +6,22 @@ import androidx.core.view.GestureDetectorCompat;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,6 +49,10 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     ArrayList<ZipEntry> entriesList;
     ZipEntry ent;
     String convertedPath;
+    PdfRenderer renderer;
+    File fl;
+    Bitmap btm;
+    PdfRenderer.Page pdfPage;
     public class OpenFile {
         public OpenFile(){}
         public Context getContextOpen(){
@@ -68,57 +78,112 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                 e.getStackTrace();
             }
         }
-        public void openFile(String path){
+
+        public void openFile(String path) {
             convertedPath = path.replace("raw:", "");
-            try {
-                entriesList = new ArrayList<>();
-                zipfl = new ZipFile(convertedPath);
-                entriesfl = zipfl.entries();
-                while(entriesfl.hasMoreElements()) {
-                    ent = entriesfl.nextElement();
-                    entriesList.add(ent);
+            if (path.contains(".pdf")) {
+                try {
+                    fl = new File(convertedPath);
+                    renderer = new PdfRenderer(ParcelFileDescriptor.open(fl,  ParcelFileDescriptor.MODE_READ_ONLY));
+                    page = 0;
+                    pdfPage = renderer.openPage(page);
+                    btm = BitmapFactory.decodeResource(getResources(), R.drawable.nico);
+                    pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                    i.setImageBitmap(btm);
+                    pdfPage.close();
+                    renderer.close();
+                } catch (Exception e) {
+                    e.getStackTrace();
                 }
-                page = 0;
-                buf_page = 0;
-                InputStream zi = zipfl.getInputStream(entriesList.get(page));
-                i.setImageBitmap(BitmapFactory.decodeStream(zi));
 
-                zi.close();
-            }catch (Exception e){
-                e.getStackTrace();
+            } else if (path.contains(".zip")){
+                try {
+                    entriesList = new ArrayList<>();
+                    zipfl = new ZipFile(convertedPath);
+                    entriesfl = zipfl.entries();
+                    while (entriesfl.hasMoreElements()) {
+                        ent = entriesfl.nextElement();
+                        entriesList.add(ent);
+                    }
+                    fullscreen.this.page = 0;
+                    buf_page = 0;
+                    InputStream zi = zipfl.getInputStream(entriesList.get(fullscreen.this.page));
+                    i.setImageBitmap(BitmapFactory.decodeStream(zi));
+
+                    zi.close();
+                } catch (Exception e) {
+                    e.getStackTrace();
+                }
+
             }
-
         }
 
     }
 
         public void next_page(){
-        if(page+1 < entriesList.size())
-            try {
-                page++;
-                //ent = entriesfl.nextElement();
-                //entriesList.add(ent);
-                InputStream in = zipfl.getInputStream(entriesList.get(page));
-                i.setImageBitmap(BitmapFactory.decodeStream(in));
-                in.close();
-                buf_page++;
-            } catch(Exception e) {
-                page--;
-                e.getStackTrace();
+        if(convertedPath.contains(".zip")) {
+            if (page + 1 < entriesList.size())
+                try {
+                    page++;
+                    InputStream in = zipfl.getInputStream(entriesList.get(page));
+                    i.setImageBitmap(BitmapFactory.decodeStream(in));
+                    in.close();
+                    buf_page++;
+                } catch (Exception e) {
+                    page--;
+                    e.getStackTrace();
+                }
+        }
+        else if(convertedPath.contains(".pdf")) {
+                try {
+                    fl = new File(convertedPath);
+                    renderer = new PdfRenderer(ParcelFileDescriptor.open(fl, ParcelFileDescriptor.MODE_READ_ONLY));
+                } catch(Exception e){
+                    Log.d("file", "fail");
+                    e.getStackTrace();
+                }
+                if (page + 1 < renderer.getPageCount())
+                    try {
+                        page++;
+                        btm = BitmapFactory.decodeResource(getResources(), R.drawable.nico);
+                        pdfPage = renderer.openPage(page);
+                        pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                        i.setImageBitmap(btm);
+                        pdfPage.close();
+                        renderer.close();
+                    } catch (Exception e) {
+                        page--;
+                        e.getStackTrace();
+                    }
             }
     }
 
     public void prev_page(){
-        try{
-            if(page > 0) {
-                InputStream in = zipfl.getInputStream(entriesList.get(--page));
-                i.setImageBitmap(BitmapFactory.decodeStream(in));
-                in.close();
+        if(convertedPath.contains(".zip"))
+            try{
+                if(page > 0) {
+                    InputStream in = zipfl.getInputStream(entriesList.get(--page));
+                    i.setImageBitmap(BitmapFactory.decodeStream(in));
+                    in.close();
+                }
+            } catch (Exception ex){
+                page++;
+                ex.getStackTrace();
             }
-        } catch (Exception ex){
-            page++;
-            ex.getStackTrace();
-        }
+        else if(convertedPath.contains(".pdf"))
+            try{
+                if(page > 0){
+                    fl = new File(convertedPath);
+                    renderer = new PdfRenderer(ParcelFileDescriptor.open(fl,  ParcelFileDescriptor.MODE_READ_ONLY));
+                    pdfPage = renderer.openPage(--page);
+                    pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                    i.setImageBitmap(btm);
+                    pdfPage.close();
+                    renderer.close();
+                }
+            } catch (Exception e){
+                e.getStackTrace();
+            }
     }
 
     public static class MangaEntry implements Serializable {

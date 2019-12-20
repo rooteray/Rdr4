@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -50,19 +53,39 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
     String path;
     Bitmap btm;
     ZipFile zip;
-
+    File fl;
+    PdfRenderer renderer;
+    PdfRenderer.Page pdfPage;
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
-
         try {
             path = uriList.get(position).getLastPathSegment();
-            zip = new ZipFile(path.replace("raw:", ""));
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-            ZipEntry entry = entries.nextElement();
-            InputStream zi = zip.getInputStream(entry);
-            btm = BitmapFactory.decodeStream(zi);
-            zi.close();
-            zip.close();
+            if(path.contains(".zip"))
+                try {
+
+                    zip = new ZipFile(path.replace("raw:", ""));
+                    Enumeration<? extends ZipEntry> entries = zip.entries();
+                    ZipEntry entry = entries.nextElement();
+                    InputStream zi = zip.getInputStream(entry);
+                    btm = BitmapFactory.decodeStream(zi);
+                    zi.close();
+                    holder.album_title.setText(getZipName(zip));
+                    zip.close();
+                } catch (Exception e) {
+                    e.getStackTrace();
+                }
+            else if(path.contains(".pdf"))
+                try {
+                    fl = new File(path.replace("raw:", ""));
+                    renderer = new PdfRenderer(ParcelFileDescriptor.open(fl,  ParcelFileDescriptor.MODE_READ_ONLY));
+                    pdfPage = renderer.openPage(0);
+                    btm = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.nico);
+                    pdfPage.render(btm, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+                    holder.album_title.setText(fl.getName());
+                    renderer.close();
+                } catch (Exception e){
+                    e.getStackTrace();
+                }
         } catch(Exception e){
             e.getStackTrace();
         }
@@ -78,7 +101,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
         });
 
 
-        holder.album_title.setText(getZipName(zip));
+
 
     }
     private String getZipName(ZipFile zipfile){
