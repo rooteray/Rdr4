@@ -13,16 +13,17 @@
         android:scaleType="fitXY"
         android:id="@+id/album"
         />
+
     <TextView
+        android:id="@+id/album_tile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nico"
-        android:padding="8dp"
         android:gravity="center"
+        android:padding="8dp"
+        android:text="Nico"
+        android:textColor="#DDDDDD"
         android:textSize="18dp"
-        android:textStyle="bold"
-        android:id="@+id/album_tile"
-        />
+        android:textStyle="bold" />
 
 
 </LinearLayout>

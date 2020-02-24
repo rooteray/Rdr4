@@ -1,10 +1,12 @@
 package com.rtry.rdr4;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,10 +16,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.GestureDetector;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.github.chrisbanes.photoview.PhotoView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,7 +45,8 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     Uri content_describer;
     int page = 0;
     int buf_page = 0;
-    ImageView i;
+    PhotoView i;
+    //ImageView i;
     GestureDetectorCompat gst;
     public static ArrayList<String> entries = new ArrayList<>();
     private static final int SWIPE_MIN_DISTANCE = 120;
@@ -123,6 +132,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     page++;
                     InputStream in = zipfl.getInputStream(entriesList.get(page));
                     i.setImageBitmap(BitmapFactory.decodeStream(in));
+                    Toast.makeText(this, String.valueOf(page+1)+"/"+String.valueOf(entriesList.size()), Toast.LENGTH_SHORT).show();
                     in.close();
                     buf_page++;
                 } catch (Exception e) {
@@ -151,6 +161,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                 if(page > 0) {
                     InputStream in = zipfl.getInputStream(entriesList.get(--page));
                     i.setImageBitmap(BitmapFactory.decodeStream(in));
+                    Toast.makeText(this, String.valueOf(page+1)+"/"+String.valueOf(entriesList.size()), Toast.LENGTH_SHORT).show();
                     in.close();
                 }
             } catch (Exception ex){
@@ -215,7 +226,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
 
          if (requestCode == 1 && resultCode == Activity.RESULT_OK){
             content_describer = data.getData();
-            i = (ImageView) findViewById(R.id.imageView);
+            i = (PhotoView) findViewById(R.id.photoView);
             open = new OpenFile();
             open.openFile(content_describer);
         }
@@ -235,7 +246,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             int which = intent.getIntExtra("which", -1);
             String str = RecyclerAdapter.uriList.get(which).getLastPathSegment();
             Log.d("test rec" , str);
-            i = (ImageView) findViewById(R.id.imageView);
+            i = (PhotoView) findViewById(R.id.photoView);
             open = new OpenFile();
             open.openFile(str);
         } else {
@@ -265,7 +276,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             }
         };
 
-        forceImmersive.postDelayed(runnable, 1000);
+        forceImmersive.postDelayed(runnable, 0);
 
     }
     @Override
@@ -310,7 +321,6 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
 
     @Override
     public void onLongPress(MotionEvent e) {
-
     }
 
     @Override
@@ -337,13 +347,51 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
 
         return true;
     }
+    public void onRightClick(View view){
+        try{
+            if(MainActivity.getMangaMode())
+                prev_page();
+            else
+                next_page();
+        } catch(Exception e){
+            e.getStackTrace();
+        }
+    }
+    public void onLeftClick(View view){
+        try {
+            if(MainActivity.getMangaMode())
+                next_page();
+            else
+                prev_page();
+        } catch(Exception e){
+            e.getStackTrace();
+        }
+    }
+    public void onZoomClick(View view){
+        final EditText input = new EditText(this);
+        new AlertDialog.Builder(this)
+                .setTitle("Go to page...")
+                .setView(input)
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    int tmp = page;
+                    try {
+                        page = Integer.parseInt(input.getText().toString()) - 2;
+                    } catch (Exception e){
+                        page = tmp - 1;
+                    }
+                    if(!(page >= -1 && page < entriesList.size()))
+                        page = tmp - 1;
+                    next_page();
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event){
             gst.onTouchEvent(event);
             return super.onTouchEvent(event);
     }
-
-
 }
 
