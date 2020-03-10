@@ -46,7 +46,6 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     int page = 0;
     int buf_page = 0;
     PhotoView i;
-    //ImageView i;
     GestureDetectorCompat gst;
     public static ArrayList<String> entries = new ArrayList<>();
     private static final int SWIPE_MIN_DISTANCE = 120;
@@ -68,6 +67,12 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
         public void openFile(Uri filePath) {
             try {
 
+                if(!(filePath.toString().contains(".zip") ||
+                        filePath.toString().contains(".cbz") ||
+                        filePath.toString().contains(".pdf"))) {
+                    finish();
+                    return;
+                }
                 MangaEntry man = new MangaEntry(content_describer.toString(), getContextOpen());
                 try{
                     entries = (ArrayList<String>) man.loadEntries();
@@ -101,7 +106,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     e.getStackTrace();
                 }
 
-            } else if (path.contains(".zip")){
+            } else if (path.contains(".zip") || path.contains(".cbz")){
                 try {
                     entriesList = new ArrayList<>();
                     zipfl = new ZipFile(convertedPath);
@@ -120,13 +125,13 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
                     e.getStackTrace();
                 }
 
-            }
+            } else finish();
         }
 
     }
 
         public void next_page(){
-        if(convertedPath.contains(".zip")) {
+        if(convertedPath.contains(".zip") || convertedPath.contains(".cbz")) {
             if (page + 1 < entriesList.size())
                 try {
                     page++;
@@ -156,7 +161,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
     }
 
     public void prev_page(){
-        if(convertedPath.contains(".zip"))
+        if(convertedPath.contains(".zip") || convertedPath.contains(".cbz"))
             try{
                 if(page > 0) {
                     InputStream in = zipfl.getInputStream(entriesList.get(--page));
@@ -229,7 +234,7 @@ public class fullscreen extends AppCompatActivity implements GestureDetector.OnG
             i = (PhotoView) findViewById(R.id.photoView);
             open = new OpenFile();
             open.openFile(content_describer);
-        }
+        } else finish();
     }
 
 

@@ -60,7 +60,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ImageV
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         try {
             path = uriList.get(position).getLastPathSegment();
-            if(path.contains(".zip"))
+            if(path.contains(".zip") || path.contains(".cbz"))
                 try {
 
                     zip = new ZipFile(path.replace("raw:", ""));
